@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
-import { getParticipants } from './data/utmbBedrestActigraphy';
+﻿import React, { useEffect, useState } from 'react';
+import { fetchParticipants } from './services/api';
+import type { Participant } from './types';
 import { TopBar } from './components/navigation/TopBar';
 import { AstronautProfile } from './components/profile/AstronautProfile';
 import { InteractiveBodyMap } from './components/body/InteractiveBodyMap';
@@ -12,9 +13,37 @@ import { ProvenanceLedger } from './components/provenance/ProvenanceLedger';
 import { ShieldCheck, Moon, Database } from 'lucide-react';
 
 export const App: React.FC = () => {
-  const participants = getParticipants();
+  const [participants, setParticipants] = useState<Record<string, Participant>>({});
   const [selectedId, setSelectedId] = useState<string>('C1G0001');
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  useEffect(() => {
+    let active = true;
+    fetchParticipants()
+      .then((data) => {
+        if (active) setParticipants(data);
+      })
+      .catch((err: unknown) => {
+        if (active) setError(err instanceof Error ? err.message : 'API connection failed');
+      })
+      .finally(() => {
+        if (active) setLoading(false);
+      });
+    return () => { active = false; };
+  }, []);
   const activeParticipant = participants[selectedId] ?? participants['C1G0001'];
+  if (loading) {
+    return <div className="min-h-screen bg-habitat-ground text-spaceText-primary flex items-center justify-center font-mono">CONNECTING TO ORBITAL CARE API...</div>;
+  }
+  if (error || !activeParticipant) {
+    return (
+      <div className="min-h-screen bg-habitat-ground text-spaceText-primary flex flex-col items-center justify-center gap-4 p-8">
+        <h1 className="text-xl font-bold">HABITAT DATA LINK OFFLINE</h1>
+        <p className="text-sm text-spaceText-secondary">{error || 'No participant data received.'}</p>
+        <button className="px-5 py-2 rounded bg-mission-orange text-white" onClick={() => window.location.reload()}>RECONNECT</button>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-habitat-ground text-spaceText-primary font-sans antialiased selection:bg-mission-orange selection:text-white pb-16">
@@ -25,10 +54,24 @@ export const App: React.FC = () => {
         onSelectParticipant={setSelectedId}
       />
 
+      <nav aria-label="Dashboard navigation" className="border-b border-habitat-border bg-habitat-panel px-4 py-3">
+        <div className="mx-auto flex max-w-7xl flex-wrap gap-2">
+          {[
+            ["overview", "OVERVIEW"],
+            ["sleep", "SLEEP ANALYTICS"],
+            ["body-map", "BODY MAP"],
+            ["observations", "OBSERVATIONS"],
+            ["research", "RESEARCH DATA"]
+          ].map(([id, label]) => (
+            <a key={id} href={`#${id}`} className="nav-link">{label}</a>
+          ))}
+        </div>
+      </nav>
+
       {/* Main Mission Console Grid */}
       <main className="max-w-7xl mx-auto px-4 lg:px-8 pt-6 space-y-8">
         {/* Research Context Ribbon */}
-        <section className="bg-habitat-panel rounded-lg border border-habitat-border p-4 shadow-instrument flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+        <section id="research" className="bg-habitat-panel rounded-lg border border-habitat-border p-4 shadow-instrument flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
           <div className="flex items-center gap-3">
             <div className="p-2.5 rounded bg-habitat-elevated border border-habitat-border text-mission-orange">
               <Database className="w-5 h-5" />
@@ -39,7 +82,7 @@ export const App: React.FC = () => {
                   NASA Human Research Program (HRP) Data Layer
                 </span>
                 <span className="font-mono text-[10px] px-2 py-0.5 rounded bg-habitat-graphite text-mission-lime font-bold">
-                  ● 207 VERIFIED RECORDS
+                  â— 207 VERIFIED RECORDS
                 </span>
               </div>
               <h2 className="text-base font-bold text-spaceText-primary tracking-tight">
@@ -63,17 +106,17 @@ export const App: React.FC = () => {
         </section>
 
         {/* Deck Row 1: Crew Station Profile + Interactive Biomap */}
-        <section className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+        <section id="overview" className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
           <div className="lg:col-span-5">
             <AstronautProfile participant={activeParticipant} />
           </div>
-          <div className="lg:col-span-7">
+          <div id="body-map" className="lg:col-span-7">
             <InteractiveBodyMap participant={activeParticipant} />
           </div>
         </section>
 
         {/* Deck Row 2: Sleep Analytics Summary Strip */}
-        <section className="space-y-3">
+        <section id="sleep" className="space-y-3">
           <div className="flex items-center justify-between flex-wrap gap-2">
             <div className="flex items-center gap-2">
               <Moon className="w-4 h-4 text-mission-violet" />
@@ -101,7 +144,7 @@ export const App: React.FC = () => {
         </section>
 
         {/* Deck Row 5: Decision Support & Explainable Health Observations */}
-        <section>
+        <section id="observations">
           <ObservationAlerts participant={activeParticipant} />
         </section>
 
@@ -115,11 +158,11 @@ export const App: React.FC = () => {
       <footer className="max-w-7xl mx-auto px-4 lg:px-8 mt-12 pt-6 border-t border-habitat-border flex flex-col sm:flex-row items-center justify-between gap-4 text-xs font-mono text-spaceText-secondary">
         <div className="flex items-center gap-2">
           <ShieldCheck className="w-4 h-4 text-mission-lime" />
-          <span>ORBITAL CARE // Space Habitat OS — NASA Space Apps Challenge 2026</span>
+          <span>ORBITAL CARE // Space Habitat OS â€” NASA Space Apps Challenge 2026</span>
         </div>
         <div className="flex items-center gap-4 text-[11px] text-spaceText-muted">
           <span>Target Directory: frontend/</span>
-          <span>● ZERO DATA FABRICATION ENFORCED</span>
+          <span>â— ZERO DATA FABRICATION ENFORCED</span>
         </div>
       </footer>
     </div>
@@ -127,3 +170,4 @@ export const App: React.FC = () => {
 };
 
 export default App;
+

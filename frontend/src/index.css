@@ -40,3 +40,27 @@
 .tabular-nums {
   font-variant-numeric: tabular-nums;
 }
+
+/* ORBITAL CARE dashboard navigation */
+html { scroll-behavior: smooth; }
+.nav-link {
+  display: inline-flex;
+  align-items: center;
+  padding: 9px 13px;
+  border: 1px solid #3b4148;
+  border-radius: 6px;
+  color: #c5cbd1;
+  font: 700 10px ui-monospace, monospace;
+  letter-spacing: .08em;
+  text-decoration: none;
+  transition: background .2s ease, color .2s ease, border-color .2s ease;
+}
+.nav-link:hover {
+  color: white;
+  background: #d97736;
+  border-color: #d97736;
+}
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  .nav-link { transition: none; }
+}
