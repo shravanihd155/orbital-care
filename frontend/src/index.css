@@ -1,0 +1,42 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --surface-ground: #F5F2EB;
+  --surface-panel: #FCFAF6;
+  --surface-elevated: #ECE7DC;
+  --surface-graphite: #16181C;
+  --surface-graphite-card: #22252C;
+  --text-primary: #17181D;
+  --text-secondary: #585E6D;
+  --text-muted: #8A91A0;
+  --text-inverse: #F7F5F0;
+  --color-mission-orange: #E65100;
+  --color-mission-orange-subtle: #FFF3EB;
+  --color-acid-lime: #689F00;
+  --color-acid-lime-subtle: #F1F8E9;
+  --color-dusty-violet: #665584;
+  --color-dusty-violet-subtle: #F3EFF9;
+  --border-instrument: rgba(23, 24, 29, 0.14);
+  --border-instrument-dark: rgba(255, 255, 255, 0.12);
+}
+
+/* Mechanical hairline and instrument borders */
+.border-instrument {
+  border: 1px solid var(--border-instrument);
+}
+
+.border-instrument-dark {
+  border: 1px solid var(--border-instrument-dark);
+}
+
+/* Technical dashed borders for simulated items */
+.border-dashed-sim {
+  border: 1.5px dashed #D97706;
+}
+
+/* Tabular figures for telemetry */
+.tabular-nums {
+  font-variant-numeric: tabular-nums;
+}
